@@ -21,6 +21,3 @@ const cipher = (str) => {
 }
 
 module.exports = cipher
-
-
-

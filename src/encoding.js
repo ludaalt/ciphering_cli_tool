@@ -1,30 +1,34 @@
-const fs = require('fs')
-
 const caesar = require('./caesar')
 const atbash = require('./atbash')
+const {encodingGroup} = require('./arguments')
 
-const encoding = (operations, input, output) => {
+const fs = require('fs')
+const { Transform } = require('stream')
 
-    const readStream = fs.createReadStream(input, 'utf8')
-    const writeStream = fs.createWriteStream(output)
-
-    readStream.on('data', function(data) {
-        let result = data
-
-        for(let i = 0; i < operations.length; i += 1) {
-            let operationsItem = operations[i]
-
-            if(operationsItem == 'C1') result = caesar(result, 1)
-            if(operationsItem == 'C0') result = caesar(result, -1)
-
-            if(operationsItem == 'R1') result = caesar(result, 8)
-            if(operationsItem == 'R0') result = caesar(result, -8)
-            
-            if(operationsItem == 'A') result = atbash(result)
-        }   
-
-        writeStream.write(result)
+const createEncodingStream = () => {
+    return new Transform({
+        transform(chunk, enc, cb) {            
+            let result = encodingFunction(chunk)
+            cb(null, result)
+        }
     })
 }
 
-module.exports = encoding
+const encodingFunction = (data) => {
+    let result = data.toString()
+
+    for(let i = 0; i < encodingGroup.length; i += 1) {
+        let encodingItem = encodingGroup[i]
+                     
+        if(encodingItem === 'C1') result = caesar(result, 1)
+        if(encodingItem === 'C0') result = caesar(result, -1)
+    
+        if(encodingItem === 'R1') result = caesar(result, 8)
+        if(encodingItem === 'R0') result = caesar(result, -8)
+                            
+        if(encodingItem === 'A') result = atbash(result)
+    }    
+    return result
+} 
+
+module.exports = createEncodingStream
